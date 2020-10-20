@@ -1,0 +1,9 @@
+[requires]
+spdlog/1.8.0
+
+[options]
+fmt:header_only = True
+spdlog:header_only = True
+
+[generators]
+cmake
