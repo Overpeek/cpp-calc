@@ -44,23 +44,23 @@ struct CAS
 	};
 
 	function_map<1> functions_1 = {
-		{ "sin", [](const std::array<number, 1>& in){ return std::sinl(in.at(0)); } },
-		{ "cos", [](const std::array<number, 1>& in){ return std::cosl(in.at(0)); } },
-		{ "tan", [](const std::array<number, 1>& in){ return std::tanl(in.at(0)); } },
+		{ "sin", [](const std::array<number, 1>& in){ return sinl(in.at(0)); } },
+		{ "cos", [](const std::array<number, 1>& in){ return cosl(in.at(0)); } },
+		{ "tan", [](const std::array<number, 1>& in){ return tanl(in.at(0)); } },
 
-		{ "asin", [](const std::array<number, 1>& in){ return std::asinl(in.at(0)); } },
-		{ "acos", [](const std::array<number, 1>& in){ return std::acosl(in.at(0)); } },
-		{ "atan", [](const std::array<number, 1>& in){ return std::atanl(in.at(0)); } },
+		{ "asin", [](const std::array<number, 1>& in){ return asinl(in.at(0)); } },
+		{ "acos", [](const std::array<number, 1>& in){ return acosl(in.at(0)); } },
+		{ "atan", [](const std::array<number, 1>& in){ return atanl(in.at(0)); } },
 
-		{ "ln", [](const std::array<number, 1>& in){ return std::logl(in.at(0)); } },
+		{ "ln", [](const std::array<number, 1>& in){ return logl(in.at(0)); } },
 	};
 
 	function_map<2> functions_2 = {
-		{ "log", [](const std::array<number, 2>& in){ return std::logl(in.at(1)) / std::logl(in.at(0)); } },
+		{ "log", [](const std::array<number, 2>& in){ return logl(in.at(1)) / logl(in.at(0)); } },
 	};
 
 	operator_map operator_functions = {
-		{ op{ 0 }, [](const std::array<number, 2>& in){ return std::powl(in.at(0), in.at(1)); } },
+		{ op{ 0 }, [](const std::array<number, 2>& in){ return powl(in.at(0), in.at(1)); } },
 		{ op{ 3 }, [](const std::array<number, 2>& in){ return in.at(0) * in.at(1); } },
 		{ op{ 4 }, [](const std::array<number, 2>& in){ return in.at(0) / in.at(1); } },
 		{ op{ 5 }, [](const std::array<number, 2>& in){ return in.at(0) + in.at(1); } },
