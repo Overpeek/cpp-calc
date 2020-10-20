@@ -464,7 +464,7 @@ int main(int argc, char** argv)
 		double actual_output = *number;
 		spdlog::debug("Expected result: '{}', Actual result: '{}'", expected_output, actual_output);
 		
-		if(std::fabsl(expected_output - actual_output) > 0.000001)
+		if(fabsl(expected_output - actual_output) > 0.000001)
 			return 3;
 
 		return 0;
