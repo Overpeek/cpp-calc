@@ -36,6 +36,7 @@ struct CAS
 	template<size_t N>
 	using function_map = std::unordered_map<name, std::function<number(const std::array<number, N>&)>>;
 	using operator_map = std::unordered_map<op, std::function<number(const std::array<number, 2>&)>>;
+	using operator_order_map = std::unordered_map<op, int32_t>;
 
 	function_map<0> functions_0 = {
 		{ "pi", [](const std::array<number, 0>& in){ return 3.1415926535897932384626433832795; } },
@@ -64,6 +65,16 @@ struct CAS
 		{ op{ 4 }, [](const std::array<number, 2>& in){ return in.at(0) / in.at(1); } },
 		{ op{ 5 }, [](const std::array<number, 2>& in){ return in.at(0) + in.at(1); } },
 		{ op{ 6 }, [](const std::array<number, 2>& in){ return in.at(0) - in.at(1); } },
+	};
+
+	operator_order_map operator_orders = {
+		{ op{ 0 }, 0 },
+		{ op{ 1 }, 1 },
+		{ op{ 2 }, 1 },
+		{ op{ 3 }, 2 },
+		{ op{ 4 }, 2 },
+		{ op{ 5 }, 3 },
+		{ op{ 6 }, 3 },
 	};
 
 
@@ -197,7 +208,7 @@ struct CAS
 
 		for(const auto& item : input)
 		{
-			std::visit([&output, &stack](const auto& value){
+			std::visit([&output, &stack, this](const auto& value){
 				using T = std::decay_t<decltype(value)>;
 
 				// type symbol
@@ -218,7 +229,7 @@ struct CAS
 					while(
 						!stack.empty() &&
 						std::holds_alternative<op>(stack.top()) &&
-						(static_cast<size_t>(std::get<op>(stack.top())) <= static_cast<size_t>(op_value)))
+						( operator_orders.at( std::get<op>(stack.top()) ) <= operator_orders.at( op_value )) )
 					{
 						output.push_back(stack.top());
 						stack.pop();
@@ -273,7 +284,7 @@ struct CAS
 			const symbol* as_symbol_a = a != input.crend() ? std::get_if<symbol>(&*a) : nullptr;
 			const symbol* as_symbol_b = b != input.crend() ? std::get_if<symbol>(&*b) : nullptr;
 			if(as_symbol_a == nullptr || as_symbol_b == nullptr)
-				throw std::runtime_error("Non-Symbol item followed by a sign is not allowed");
+				return; // 5*x - 4 or something
 			
 			const number* as_number_a = std::get_if<number>(as_symbol_a);
 			const number* as_number_b = std::get_if<number>(as_symbol_b);
@@ -308,7 +319,7 @@ struct CAS
 		for(size_t i = 1; i < input.size(); i++)
 		{
 			eval_rpn_part(input, i);
-			spdlog::debug("RPN eval {}: {}", i-1, input);
+			spdlog::debug(" - RPN eval {}: {}", i-1, input);
 		}
 	}
 
@@ -423,36 +434,46 @@ struct fmt::formatter<CAS::expr>
 	}
 };
 
-int main()
+int main(int argc, char** argv)
 {
-    /* std::fstream file("input.txt");
-    if(!file.is_open())
-        file << "sin 0.555";
-
-    std::string input;
-    std::getline(file, input);
-
+	spdlog::set_pattern("%^[%T] [%l]:%$ %v");
+	spdlog::set_level(spdlog::level::level_enum::trace);
 	// calculator instance
 	CAS cas;
 
-	// gen stack from input
-    auto output_stack = cas.stack_from_input(input);
-	auto output_stack_rpn = cas.make_rpn(output_stack);
-	spdlog::info("Input was: {}\nstack is: {}\nRPN stack is: {}\neval is: {}", input, output_stack, output_stack_rpn, cas.eval_rpn(output_stack_rpn));
+	for(size_t i = 0; i < argc; i++)
+		spdlog::debug("arg{}: {}", i, argv[i]);
 
-	system("pause"); */
-	
-	while(true)
+	if(argc == 4 && !std::strcmp(argv[1], "--ctest")) // ctest mode
 	{
-		spdlog::set_pattern("%^[%T] [%l]:%$ %v");
-		spdlog::set_level(spdlog::level::level_enum::trace);
+		spdlog::debug("Running ctest with args: '{}' & '{}'", argv[2], argv[3]);
 
+		auto output_stack = cas.stack_from_input(argv[2]);
+		cas.make_rpn(output_stack);
+		cas.eval_rpn(output_stack);
+		cas.remove_monostate(output_stack);
+
+		const CAS::symbol* symbol = std::get_if<CAS::symbol>(&output_stack.at(0));
+		if(symbol == nullptr)
+			return 1;
+		const CAS::number* number = std::get_if<CAS::number>(symbol);
+		if(number == nullptr)
+			return 2;
+		
+		double expected_output = std::stold(argv[3]);
+		double actual_output = *number;
+		spdlog::debug("Expected result: '{}', Actual result: '{}'", expected_output, actual_output);
+		
+		if(std::fabsl(expected_output - actual_output) > 0.000001)
+			return 3;
+
+		return 0;
+	}
+	else while(true)
+	{
 		std::cout << "Input:";
 		std::string input;
 		std::getline(std::cin, input);
-		
-		// calculator instance
-		CAS cas;
 
 		// gen stack from input
 		spdlog::info("Input: {}", input);

@@ -1,0 +1,23 @@
+matrix:
+  include:
+    # linux focal build
+    - name: "Linux - Clang - Ubuntu 20.04 LTS"
+      language: cpp
+      os: linux
+      dist: focal
+      env: CXX_EXE=/usr/bin/clang++-10 CC_EXE=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 CC=/usr/bin/clang-10
+      cache:
+        directories:
+          - $HOME/.conan/data
+      addons:
+        apt:
+          packages:
+            - python3-pip
+            - clang-10
+            - libstdc++-10-dev
+            - libc++abi-10-dev
+            - ninja-build
+            
+      install:
+        - pip install conan cmake
+        - conan user
