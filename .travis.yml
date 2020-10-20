@@ -19,5 +19,13 @@ matrix:
             - ninja-build
             
       install:
-        - pip install conan cmake
-        - conan user
+        - pip install --user conan cmake
+        
+      script:
+        - conan --version
+        - cmake --version
+        - mkdir build && cd build
+        - conan install .. -s compiler=clang -s compiler.version=10 -s build_type=Debug --build missing
+        - cmake .. -GNinja
+        - cmake --build .
+        - ctest
